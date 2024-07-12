@@ -23,7 +23,7 @@
 #define SCROLLSTOP_X (60)
 
 #define PLAYER_Y (2)//プレイヤー初期位置Y
-#define PLAYER_X (100)//プレイヤー初期位置X
+#define PLAYER_X (290)//プレイヤー初期位置X
 
 //==================================================
 //列挙体宣言
@@ -118,7 +118,7 @@ char inputKey = '\0';
 //==================================================
 int main(void)
 {
-	//ベースマップの設定
+	//初回ベースマップの設定
 	for (int y = 0; y < BIGMAP_Y; y++)
 	{
 		for (int x = 0; x < BIGMAP_X; x++)
@@ -145,8 +145,8 @@ int main(void)
 		drowMap();
 
 		//デバッグ用テキスト
-		std::cout << "scroll_Y " << scroll_Y;
-		std::cout << "\nposY " << bigPosY;
+		std::cout << "bigPosX,Y " << bigPosX << " / " << bigPosY;
+		std::cout << "\nscroll_X,Y " << scroll_X << " / " << scroll_Y;
 
 		//キー入力受付
 		inputKey = _getch();
@@ -229,36 +229,40 @@ void obstacleDetection()
 //==================================================
 void mapScroll()
 {
-	//中心に来るまで
-	if (bigPosY < SCROLLSTOP_Y)
+	//Y・縦
+
+	//プレイヤー中心に来るまで
+	if (bigPosY <= SCROLLSTOP_Y)
 	{
 		scroll_Y = 0;
 	}
-	//中心に来た
-	else if (bigPosY >= SCROLLSTOP_Y && bigPosY - SCROLLSTOP_Y < MAP_Y)
+	//プレイヤー中心
+	else if (bigPosY > SCROLLSTOP_Y && bigPosY - SCROLLSTOP_Y < BIGMAP_Y - MAP_Y)
 	{
 		scroll_Y = bigPosY - SCROLLSTOP_Y;
 	}
-	//下まで来た
+	//プレイヤー下端に到達
 	else
 	{
-		scroll_Y = MAP_Y;
+		scroll_Y = BIGMAP_Y - MAP_Y;
 	}
 
-	//中心に来るまで
-	if (bigPosX < SCROLLSTOP_X)
+	//X・横
+
+	//プレイヤー中心に来るまで
+	if (bigPosX <= SCROLLSTOP_X)
 	{
 		scroll_X = 0;
 	}
-	//中心に来た
-	else if (bigPosX >= SCROLLSTOP_X && bigPosX - SCROLLSTOP_X <= MAP_X)
+	//プレイヤー中心
+	else if (bigPosX > SCROLLSTOP_X && bigPosX - SCROLLSTOP_X < BIGMAP_X - MAP_X)
 	{
 		scroll_X = bigPosX - SCROLLSTOP_X;
 	}
-	//下まで来た
+	//プレイヤー右端に到達
 	else
 	{
-		scroll_X = MAP_X;
+		scroll_X = BIGMAP_X - MAP_X;
 	}
 }
 
