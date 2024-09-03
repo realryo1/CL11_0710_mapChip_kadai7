@@ -9,6 +9,8 @@
 #include<ios>//位置変え
 #include<iomanip>//桁表示変え
 #include<conio.h>//_getch()
+#include<cstdlib>//abs関数,絶対値
+#include <algorithm> // std::swap() バブルソート
 
 //==================================================
 //マクロ定義
@@ -23,9 +25,10 @@
 #define DEF_SCROLLSTOP_X (60)//60
 
 #define SPOT (100)//100
+#define PICKUPSPOT (3)//ピックアップする近接のスポットの数
 
-#define PLAYER_Y (14)//プレイヤー初期位置Y
-#define PLAYER_X (60)//プレイヤー初期位置X
+#define PLAYER_Y (12)//プレイヤー初期位置Y
+#define PLAYER_X (59)//プレイヤー初期位置X
 
 //==================================================
 //列挙体宣言
@@ -41,6 +44,7 @@ void setting(void);
 void drowMap(void);
 void line(void);
 void nearbySpotSearch(void);
+void nearbySpotDrow(void);
 void movePlayer(void);
 void obstacleDetection(void);
 void mapScroll(void);
@@ -219,98 +223,101 @@ int spot[SPOT][3] = {
 {10,21,52},//北洋銀行札幌駅南口支店
 {11,21,44},//ホテルグレイズリー札幌
 {12,24,43},//ローソン 札幌北4条西四丁目
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0},
-{ 0, 0, 0}
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0},
+{ 3, 0, 0}
 };
+
+//近くのスポットリスト上位３つ
+int nearbySpot[1][PICKUPSPOT] = {};
 
 //宣言と初期化
 int map_y = DEF_MAP_Y;
@@ -348,18 +355,22 @@ int main(void)
 	for (int i = 0; i < SPOT; i++)
 	{
 		baseBigMap[spot[i][1]][spot[i][2]] = spot[i][0];
-		baseBigMap[spot[i][1]][spot[i][2] + 1] = -1;//全角対策、指定の右隣を抹消
+
+		if (0 < spot[i][1] + spot[i][2])//欠番でないなら
+		{
+			baseBigMap[spot[i][1]][spot[i][2] + 1] = -1;//全角対策、指定の右隣を抹消
+		}
 	}
 
 	for (;;)
 	{
-		movePlayer();
+		movePlayer();//プレイヤー移動
 
-		//obstacleDetection();
+		//obstacleDetection();//障害物判定
 
-		mapScroll();
+		mapScroll();//スクロールによるマップのずれを計算
 
-		initializeMap();
+		initializeMap();//マップ初期化
 
 		//移動後プレイヤー位置設定
 		map[bigPosY - scroll_Y][bigPosX - scroll_X] = 99;
@@ -370,93 +381,23 @@ int main(void)
 		drowMap();
 		line();
 
-		nearbySpotSearch();
+		nearbySpotSearch();//近くのスポットを検索
 
-		//デバッグ用テキスト
+		std::cout << "\n";
+
+		nearbySpotDrow();//UI用描画
+
+		//デバッグテキスト
+		std::cout << "\n";
 		std::cout << "\nbigPosY,X " << bigPosY << " / " << bigPosX;
-		std::cout << "\nscroll_Y,X " << scroll_Y << " / " << scroll_X;
-
-		//こわれてる　std::cout << "\n\n　I：設定";
+		//std::cout << "\nscroll_Y,X " << scroll_Y << " / " << scroll_X;
+		std::cout << "\n";
 
 		//キー入力受付
 		inputKey = _getch();
-
-		/*
-		//移動以外の判断
-		if (inputKey == 'i')
-		{
-			setting();
-		}
-		*/
 	}
 }
 
-//==================================================
-//設定関数 （壊れてるので呼び出しなし）
-//==================================================
-void setting(void)
-{
-	bool quit = false;
-
-	while (quit == false)
-	{
-		system("cls");
-
-		//デバッグ用テキスト
-		std::cout << "\n　設定";
-		std::cout << "\n\n　1.マップ描画範囲の変更";
-		std::cout << "\n\n　2.マップ描画範囲を初期設定に戻す";
-		std::cout << "\n\n　9.ゲームに戻る";
-		std::cout << "\n\n　数字を入力してください\n\n";
-
-		inputKey = _getch();
-
-		system("cls");
-
-		//サイズ変更（壊れてる）
-		if (inputKey == '1')
-		{
-			system("cls");
-
-
-			std::cout << "\n\n　縦のマップ描画サイズを入力してください（初期設定：" << DEF_MAP_Y << " フルスクリーン表示の目安：50）\n\n　>> ";
-			std::cin.seekg(0);
-			std::cin >> map_y;
-
-			std::cout << "\n\n　横のマップ描画サイズを入力してください（初期設定：" << DEF_MAP_X << " フルスクリーン表示の目安：190）\n\n　>> ";
-			std::cin.seekg(0);
-			std::cin >> map_x;
-
-			scrollStop_y = map_y / 2;
-			scrollStop_x = map_x / 2;
-
-			std::cout << "\n\n　設定しました\n\n　エンターで戻る";
-
-			std::cin.seekg(0);
-			std::cin.get();
-		}
-		//描画初期
-		else if (inputKey == '2')
-		{
-			system("cls");
-
-			map_y = DEF_MAP_Y;
-			map_x = DEF_MAP_X;
-			scrollStop_y = DEF_SCROLLSTOP_Y;
-			scrollStop_x = DEF_SCROLLSTOP_X;
-
-			std::cout << "\n　マップ描画範囲を初期設定に戻しました\n\n　エンターで戻る";
-
-			std::cin.seekg(0);
-			std::cin.get();
-		}
-		//退出
-		else if (inputKey == '9')
-		{
-			quit = true;
-		}
-	}
-}
 
 //==================================================
 //マップ描画関数
@@ -552,6 +493,8 @@ void line(void)
 	{
 		std::cout << "●";
 	}
+
+	std::cout << "\n";
 }
 
 //==================================================
@@ -559,11 +502,87 @@ void line(void)
 //==================================================
 void nearbySpotSearch(void)
 {
+	int PY_Distance = 0;
+	int PX_Distance = 0;
 
+	int spotDistance[SPOT][2] = {};//プレイヤーとの距離とスポット番号を入れてソート、上位3つをnearbySpot（グローバル変数）に代入
 
+	for (int i = 0; i < SPOT; i++)
+	{
+		PY_Distance = std::abs(spot[i][1] - bigPosY) * 2;
+		PX_Distance = std::abs(spot[i][2] - bigPosX);
 
+		spotDistance[i][0] = PY_Distance + PX_Distance;
+		spotDistance[i][1] = i;
+	}
+
+	//昇順にバブルソート（ChatGPTに書いてもらった）
+	for (int i = 0; i < SPOT - 1; i++)
+	{
+		for (int j = 0; j < SPOT - i - 1; j++)
+		{
+			if (spotDistance[j][0] > spotDistance[j + 1][0])
+			{
+				// 0列（距離）と1列（スポット番号）を交換
+				std::swap(spotDistance[j][0], spotDistance[j + 1][0]);
+				std::swap(spotDistance[j][1], spotDistance[j + 1][1]);
+			}
+		}
+	}
+
+	//上位3つのスポット番号をnearbySpot（グローバル変数）に代入
+	for (int i = 0; i < PICKUPSPOT; i++)
+	{
+		nearbySpot[0][i] = spotDistance[i][1];
+	}
 }
 
+//==================================================
+//周辺スポットリスト描画関数
+//==================================================
+void nearbySpotDrow(void)
+{
+	for (int i = 0; i < PICKUPSPOT; i++)
+	{
+		std::cout << i + 1 << ".";
+
+		switch (nearbySpot[0][i])
+		{
+		case 0:
+			std::cout << "大丸";
+			break;
+		case 1:
+			std::cout << "札幌ステラプレイス";
+			break;
+		case 2:
+			std::cout << "JRタワー";
+			break;
+		case 3:
+			std::cout << "東急百貨店";
+			break;
+		case 4:
+			std::cout << "セブンイレブン 札幌駅バスターミナル前";
+			break;
+		case 5:
+			std::cout << "北海道銀行札幌駅前支店";
+			break;
+		case 6:
+			std::cout << "北洋銀行札幌駅南口支店";
+			break;
+		case 7:
+			std::cout << "大丸ホテルグレイズリー札幌";
+			break;
+		case 8:
+			std::cout << "ローソン 札幌北4条西四丁目";
+			break;
+		default:
+			std::cout << "選択不可";
+			break;
+		}
+
+		std::cout << "　";
+	}
+}
 
 //==================================================
 //プレイヤー移動関数
@@ -679,6 +698,73 @@ void test(void)
 
 
 
+}
+
+//==================================================
+//設定関数 （壊れてるので呼び出さない）
+//==================================================
+void setting(void)
+{
+	bool quit = false;
+
+	while (quit == false)
+	{
+		system("cls");
+
+		//デバッグ用テキスト
+		std::cout << "\n　設定";
+		std::cout << "\n\n　1.マップ描画範囲の変更";
+		std::cout << "\n\n　2.マップ描画範囲を初期設定に戻す";
+		std::cout << "\n\n　9.ゲームに戻る";
+		std::cout << "\n\n　数字を入力してください\n\n";
+
+		inputKey = _getch();
+
+		system("cls");
+
+		//サイズ変更（壊れてる）
+		if (inputKey == '1')
+		{
+			system("cls");
+
+
+			std::cout << "\n\n　縦のマップ描画サイズを入力してください（初期設定：" << DEF_MAP_Y << " フルスクリーン表示の目安：50）\n\n　>> ";
+			std::cin.seekg(0);
+			std::cin >> map_y;
+
+			std::cout << "\n\n　横のマップ描画サイズを入力してください（初期設定：" << DEF_MAP_X << " フルスクリーン表示の目安：190）\n\n　>> ";
+			std::cin.seekg(0);
+			std::cin >> map_x;
+
+			scrollStop_y = map_y / 2;
+			scrollStop_x = map_x / 2;
+
+			std::cout << "\n\n　設定しました\n\n　エンターで戻る";
+
+			std::cin.seekg(0);
+			std::cin.get();
+		}
+		//描画初期
+		else if (inputKey == '2')
+		{
+			system("cls");
+
+			map_y = DEF_MAP_Y;
+			map_x = DEF_MAP_X;
+			scrollStop_y = DEF_SCROLLSTOP_Y;
+			scrollStop_x = DEF_SCROLLSTOP_X;
+
+			std::cout << "\n　マップ描画範囲を初期設定に戻しました\n\n　エンターで戻る";
+
+			std::cin.seekg(0);
+			std::cin.get();
+		}
+		//退出
+		else if (inputKey == '9')
+		{
+			quit = true;
+		}
+	}
 }
 
 /*
