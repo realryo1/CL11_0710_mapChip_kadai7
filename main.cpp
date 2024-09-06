@@ -515,7 +515,7 @@ int main(void)
 
 		spotScene();//スポットウィンドウ
 
-		//obstacleDetection();//障害物判定
+		obstacleDetection();//障害物判定
 
 		mapScroll();//スクロールによるマップのずれを計算
 
@@ -547,9 +547,9 @@ int main(void)
 void titleScene(void)
 {
 	//タイトルロゴ
-	std::cout << "\n";
+	std::cout << "\n\n";
 	line();
-	std::cout << "\n\n\n\n\n\n";
+	std::cout << "\n\n\n\n\n";
 	std::cout << "\n　　　　　　　　●　　●　　　　　　　　●　　　　●　　●●●●●　　●　　　●　　　●　　　●●●　　●";
 	std::cout << "\n　　　　　　　●●●●●●　　　　　●●●●●　●　●　●　　　●　　●●　●●　　　●　　　●　　●　●";
 	std::cout << "\n　　　　　　　　●　　●　　　　　　　　●　　　　●　　●　　　●　　●　●　●　　●　●　　●　　●　●";
@@ -565,7 +565,7 @@ void titleScene(void)
 	std::cout << "\n";
 	std::cout << "\n";
 	std::cout << "\n　　　　　　　　　　　　　　　　　　　　　　　　　エンターでスタート";
-	std::cout << "\n\n\n\n\n\n\n\n";
+	std::cout << "\n\n\n\n\n\n";
 	line();
 
 	std::cin.seekg(0);
@@ -695,7 +695,7 @@ void spotScene(void)
 			spotScene_list_station();
 		}
 
-		std::cout << "\n\n　ESC：ここから出る";
+		std::cout << "\n　ESC：ここから出る";
 		std::cout << "\n\n　選択してください\n\n";
 
 		inputKey = _getch();
@@ -770,8 +770,6 @@ void spotScene_explanation(void)
 //==================================================
 void spotScene_list_shop(void)
 {
-	std::cout << "\n　";
-
 	int targetSpotID = goSpotID;
 	int targetMarkerID = spot[goSpotID][0];
 	int targetGroupID = 999;
@@ -826,6 +824,7 @@ void spotScene_list_shop(void)
 
 		if (goodsListNum == PICKUP_GOODS)
 		{
+			std::cout << "\n";
 			break;
 		}
 
@@ -847,6 +846,8 @@ void spotScene_list_shop(void)
 		goodName(goodsList[0][i]);
 		std::cout << "：" << priceList[0][i] << "円";
 	}
+
+	std::cout << "\n";
 }
 
 //==================================================
@@ -854,33 +855,33 @@ void spotScene_list_shop(void)
 //==================================================
 void spotScene_list_station(void)
 {
-	warpStation = 0;
-
-	std::cout << "\n　";
-
-	priceList[0][0] = 210;
-
-	//その場凌ぎのハードコード
-	if (goSpotID == 45)//南北線さっぽろ駅
+	if (goSpotID != 49)//東西線大通駅でないなら
 	{
-		warpStation = 47;//南北線大通駅
-	}
-	else if (goSpotID == 47)//南北線大通駅
-	{
-		warpStation = 45;//南北線さっぽろ駅
-	}
-	if (goSpotID == 46)//東豊線さっぽろ駅
-	{
-		warpStation = 48;//東豊線大通駅
-	}
-	else if (goSpotID == 48)//東豊線大通駅
-	{
-		warpStation = 46;//東豊線さっぽろ駅
-	}
+		warpStation = 0;
+		priceList[0][0] = 210;
 
-	std::cout << "\n　1.";
-	spotName(warpStation);
-	std::cout << "へ移動：" << priceList[0][0] << "円";
+		//その場凌ぎのハードコード
+		if (goSpotID == 45)//南北線さっぽろ駅
+		{
+			warpStation = 47;//南北線大通駅
+		}
+		else if (goSpotID == 47)//南北線大通駅
+		{
+			warpStation = 45;//南北線さっぽろ駅
+		}
+		if (goSpotID == 46)//東豊線さっぽろ駅
+		{
+			warpStation = 48;//東豊線大通駅
+		}
+		else if (goSpotID == 48)//東豊線大通駅
+		{
+			warpStation = 46;//東豊線さっぽろ駅
+		}
+
+		std::cout << "\n　1.";
+		spotName(warpStation);
+		std::cout << "へ移動：" << priceList[0][0] << "円\n";
+	}
 }
 
 //==================================================
@@ -1481,14 +1482,11 @@ void nearbySpotDrow(void)
 {
 	for (int i = 0; i < PICKUP_SPOT; i++)
 	{
-
 		std::cout << "　" << i + 1 << "：[";
 		markerDrow(spot[nearbySpot[0][i]][0]);
 		std::cout << "] ";
 
 		spotName(nearbySpot[0][i]);
-
-		std::cout << "　";
 	}
 }
 
