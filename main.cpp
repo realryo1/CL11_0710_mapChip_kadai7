@@ -25,7 +25,10 @@
 #define DEF_SCROLLSTOP_X (60)//60
 
 #define SPOT (100)//100
-#define PICKUPSPOT (3)//ピックアップする近接のスポットの数
+#define GOODS (100)//100
+#define PICKUP_SPOT (3)//ピックアップする近接のスポットの数
+#define PICKUP_GOODS (5)//ピックアップする最大のgoodsの数
+
 
 #define PLAYER_Y (12)//プレイヤー初期位置Y
 #define PLAYER_X (59)//プレイヤー初期位置X
@@ -43,11 +46,13 @@ void firstSetup(void);
 void movePlayer(void);
 void spotScene(void);
 void spotScene_explanation(void);
-void spotScene_list_conveniencestore(void);
+void spotScene_list_shop(void);
+void spotScene_list_station(void);
 void spotScene_ans_buy(void);
 void spotScene_ans_money(void);
-void spotScene_list_station(void);
 void spotScene_ans_ride(void);
+void spotScene_ans_hotel(void);
+void goodName(int id);
 void obstacleDetection(void);
 void mapScroll(void);
 void initializeMap(void);
@@ -56,7 +61,7 @@ void drowMap(void);
 void markerDrow(int id = 0, int x = 1);
 void nearbySpotSearch(void);
 void nearbySpotDrow(void);
-void nearbySpotName(int id);
+void spotName(int id);
 void line(void);
 void debug(void);
 
@@ -221,7 +226,7 @@ int baseBigMap[BIGMAP_Y][BIGMAP_X];
 
 int map[DEF_MAP_Y][DEF_MAP_X];
 
-//スポット　出すマーカー/BIGY/BIGX
+//スポット　マーカーID/BIGY/BIGX
 int spot[SPOT][3] = {
 {19,10,49},//大丸
 {19, 8,67},//札幌ステラプレイス
@@ -289,16 +294,16 @@ int spot[SPOT][3] = {
 { 3, 0, 0},//
 { 3, 0, 0},//
 
-{ 3, 0, 0},//
-{ 3, 0, 0},//
-{ 3, 0, 0},//
-{ 3, 0, 0},//
-{ 3, 0, 0},//
+{17,33,80},//ドトール 札幌時計台通店
+{17,35, 8},//ドトール 北海道庁店
+{17,56,12},//ドトール 札幌北一条通店
+{14,33, 8},//セイコーマート 北海道庁
+{14,26,11},//セイコーマート 道庁前北
 
-{ 3, 0, 0},//
-{ 3, 0, 0},//
-{ 3, 0, 0},//
-{ 3, 0, 0},//
+{14,32,110},//セイコーマート 北3条
+{14,65,66},//セイコーマート 大通ビッセ
+{14,71,128},//セイコーマート 大通バスセンター
+{14,84,51},//セイコーマート 南1条西4丁目
 { 3, 0, 0},//
 
 { 3, 0, 0},//
@@ -344,8 +349,132 @@ int spot[SPOT][3] = {
 { 3, 0, 0}//
 };
 
+//spotID,markerID,groupID,price
+int goods[GOODS][4] = {
+	//0
+	{ -1, -1, 1, 280},//ザンギおにぎり
+	{ -1, -1, 1, 170},//キリンガラナ
+	{ -1, -1, 1, 160},//リボンナポリン
+	{ -1, -1, 1, 158},//焼きそば弁当
+	{ -1, 9, -1, 220},//ナナチキ
+	//5
+	{ -1, 12, -1,238},//ローチキ
+	{ -1, 14, -1,150},//道産ポテトのフライ
+	{ -1, 15, -1,213},//ファミチキ
+	{ -1, 11, -1, 7000},//ホテルに泊まる
+	{ -1, 11, -1, 2500},//日帰り温泉に入浴
+	//10
+	{ -1, 13, -1, 820},//芳醇ふわとろ月見セット
+	{ -1, 13, -1, 620},//ひるまック ダブルチーズバーガー セット
+	{ -1, 13, -1, 750},//ビッグマック セット
+	{ -1, 13, -1, 840},//炙り醤油風 ベーコントマト肉厚ビーフ セット
+	{ -1, 13, -1, 690},//てりやきチキンフィレオ セット
+	//15
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	//20
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	//25
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	//30
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	//35
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0},//
+	{ -1, -1, -1, 0}//
+};
+
 //近くのスポットリスト上位３つ
-int nearbySpot[1][PICKUPSPOT] = {};
+int nearbySpot[1][PICKUP_SPOT] = {};
 
 //宣言と初期化
 int map_y = DEF_MAP_Y;
@@ -363,8 +492,10 @@ int prevBigPosX = PLAYER_X;
 
 int money = 0;//使用金額の合計
 
+bool quit = true;//spotScene退出フラグ
+
 int goSpotID = 0;//spotScene用呼び出されたスポットID
-int price[1][5] = {};//spotScene用値段リスト
+int priceList[1][5] = {};//spotScene用値段リスト
 int warpStation = 0;//spotScene_station用移動先駅スポットID
 
 char inputKey = '\0';
@@ -384,7 +515,7 @@ int main(void)
 
 		spotScene();//スポットウィンドウ
 
-		obstacleDetection();//障害物判定
+		//obstacleDetection();//障害物判定
 
 		mapScroll();//スクロールによるマップのずれを計算
 
@@ -518,7 +649,7 @@ void movePlayer(void)
 //==================================================
 void spotScene(void)
 {
-	bool quit = true;
+	quit = true;
 
 	//入力判定
 	if (inputKey == '1')
@@ -542,7 +673,7 @@ void spotScene(void)
 		//price初期化
 		for (int i = 0; i < 5; i++)
 		{
-			price[0][i] = -1;
+			priceList[0][i] = -1;
 		}
 
 		system("cls");
@@ -550,20 +681,15 @@ void spotScene(void)
 		std::cout << "\n　[";
 		markerDrow(spot[goSpotID][0]);
 		std::cout << "]　";
-		nearbySpotName(goSpotID);
+		spotName(goSpotID);
 
+		//観光名所など説明・フレーバーテキスト
 		spotScene_explanation();
 
-		//コンビニ判定（makerIDで判断）
-		if (spot[goSpotID][0] == 9//セブン
-			|| spot[goSpotID][0] == 12//ローソン
-			|| spot[goSpotID][0] == 14//セコマ
-			|| spot[goSpotID][0] == 15)//ファミマ
-		{
-			spotScene_list_conveniencestore();
-		}
+		//goodsリスト
+		spotScene_list_shop();
 
-		//駅判定（makerIDで判断）
+		//駅（makerIDで判断）
 		if (spot[goSpotID][0] == 18)
 		{
 			spotScene_list_station();
@@ -580,9 +706,16 @@ void spotScene(void)
 		if (spot[goSpotID][0] == 9//セブン
 			|| spot[goSpotID][0] == 12//ローソン
 			|| spot[goSpotID][0] == 14//セコマ
-			|| spot[goSpotID][0] == 15)//ファミマ
+			|| spot[goSpotID][0] == 15//ファミマ
+			|| spot[goSpotID][0] == 13)//マクドナルド
 		{
 			spotScene_ans_buy();
+		}
+
+		//ホテル（makerID）
+		if (spot[goSpotID][0] == 11)
+		{
+			spotScene_ans_hotel();
 		}
 
 		//駅移動判定（makerIDで判断）
@@ -590,7 +723,6 @@ void spotScene(void)
 		{
 			spotScene_ans_ride();
 		}
-
 
 		//退出
 		if (inputKey == 0x1b)
@@ -606,6 +738,17 @@ void spotScene(void)
 //==================================================
 void spotScene_explanation(void)
 {
+	//銀行（makerID）
+	switch (spot[goSpotID][0])
+	{
+	case 10:
+		std::cout << "\n\n　預金額：2,007,831円";
+		break;
+	default:
+		break;
+	}
+
+	//他特定スポット
 	switch (goSpotID)
 	{
 	case 24://札幌市時計台
@@ -623,80 +766,87 @@ void spotScene_explanation(void)
 }
 
 //==================================================
-//スポットシーン・コンビニ品物リスト関数
+//スポットシーン・品物リスト関数
 //==================================================
-void spotScene_list_conveniencestore(void)
+void spotScene_list_shop(void)
 {
 	std::cout << "\n　";
 
-	price[0][0] = 280;
-	price[0][1] = 170;
-	price[0][2] = 160;
-	price[0][3] = 158;
+	int targetSpotID = goSpotID;
+	int targetMarkerID = spot[goSpotID][0];
+	int targetGroupID = 999;
+	int goodsID = 0;
+	int goodsList[1][PICKUP_GOODS];
+	int goodsListNum = 0;
 
-	std::cout << "\n　1.北海道限定ザンギおにぎり：" << price[0][0] << "円";
-	std::cout << "\n　2.キリンガラナ：" << price[0][1] << "円";
-	std::cout << "\n　3.リボンナポリン：" << price[0][2] << "円";
-	std::cout << "\n　4.焼きそば弁当：" << price[0][3] << "円";
-
-	if (spot[goSpotID][0] == 9)//セブン
+	//goodlist初期化
+	for (int i = 0; i < PICKUP_GOODS; i++)
 	{
-		price[0][4] = 220;
-
-		std::cout << "\n　5.ナナチキ：" << price[0][4] << "円";
+		goodsList[0][i] = 999;
 	}
-	else if (spot[goSpotID][0] == 12)//ローソン
-	{
-		price[0][4] = 238;
 
-		std::cout << "\n　5.ローチキ：" << price[0][4] << "円";
+	//group分類
+	switch (spot[goSpotID][0])
+	{
+	case 9://セブン
+		targetGroupID = 1;
+		break;
+	case 12://ローソン
+		targetGroupID = 1;
+		break;
+	case 14://セコマ
+		targetGroupID = 1;
+		break;
+	case 15://ファミマ
+		targetGroupID = 1;
+		break;
 	}
-	else if (spot[goSpotID][0] == 14)//セコマ
-	{
-		price[0][4] = 150;
 
-		std::cout << "\n\n　【ホットシェフ】\n";
-		std::cout << "\n　5.道産ポテトのフライ：" << price[0][4] << "円";
-	}
-	else if (spot[goSpotID][0] == 15)//ファミマ
+	//呼び出したいgoodsを検索
+	for (int i = 0; i < GOODS; i++)
 	{
-		price[0][4] = 213;
-
-		std::cout << "\n　5.ファミチキ：" << price[0][4] << "円";
-	}
-}
-
-//==================================================
-//スポットシーン・結果購入関数
-//==================================================
-void spotScene_ans_buy(void)
-{
-	//'1' == 49
-	for (int i = 0; i < 5; i++)
-	{
-		if (price[0][i] == -1)//-1円の商品（欠番）があった場合、なにもしない
+		//spotID判定
+		if (goods[i][0] == targetSpotID)
 		{
-
+			goodsList[0][goodsListNum] = i;
+			goodsListNum++;
 		}
-		else if (inputKey == i + 49)
+		//markerID判定
+		else if (goods[i][1] == targetMarkerID)
 		{
-			money += price[0][i];
-			std::cout << "\n　【 " << i + 1 << ".の商品を購入しました 】";
-			spotScene_ans_money();
-
-			std::cin.seekg(0);
-			std::cin.get();
+			goodsList[0][goodsListNum] = i;
+			goodsListNum++;
 		}
-	}
-}
+		//groupID判定
+		else if (goods[i][2] == targetGroupID)
+		{
+			goodsList[0][goodsListNum] = i;
+			goodsListNum++;
+		}
 
-//==================================================
-//スポットシーン・結果金額関数
-//==================================================
-void spotScene_ans_money(void)
-{
-	std::cout << "\n\n　いままでの使用額：" << money << "円";
-	std::cout << "\n\n　エンターで進む";
+		if (goodsListNum == PICKUP_GOODS)
+		{
+			break;
+		}
+
+	}
+
+	//リスト描画
+	for (int i = 0; i < PICKUP_GOODS; i++)
+	{
+		//欠番が来たら終了
+		if (goodsList[0][i] == 999)
+		{
+			break;
+		}
+
+		//値段の代入
+		priceList[0][i] = goods[goodsList[0][i]][3];
+
+		std::cout << "\n　" << i + 1 << ".";
+		goodName(goodsList[0][i]);
+		std::cout << "：" << priceList[0][i] << "円";
+	}
 }
 
 //==================================================
@@ -708,7 +858,7 @@ void spotScene_list_station(void)
 
 	std::cout << "\n　";
 
-	price[0][0] = 210;
+	priceList[0][0] = 210;
 
 	//その場凌ぎのハードコード
 	if (goSpotID == 45)//南北線さっぽろ駅
@@ -729,8 +879,40 @@ void spotScene_list_station(void)
 	}
 
 	std::cout << "\n　1.";
-	nearbySpotName(warpStation);
-	std::cout << "へ移動：" << price[0][0] << "円";
+	spotName(warpStation);
+	std::cout << "へ移動：" << priceList[0][0] << "円";
+}
+
+//==================================================
+//スポットシーン・結果購入関数
+//==================================================
+void spotScene_ans_buy(void)
+{
+	//'1' == 49
+	for (int i = 0; i < 5; i++)
+	{
+		if (priceList[0][i] == -1)//-1円の商品（欠番）があった場合、なにもしない
+		{
+		}
+		else if (inputKey == i + 49)
+		{
+			money += priceList[0][i];
+			std::cout << "\n　 " << i + 1 << ".の商品を購入しました";
+			spotScene_ans_money();
+
+			std::cin.seekg(0);
+			std::cin.get();
+		}
+	}
+}
+
+//==================================================
+//スポットシーン・結果金額関数
+//==================================================
+void spotScene_ans_money(void)
+{
+	std::cout << "\n\n　いままでの使用額：" << money << "円";
+	std::cout << "\n\n　エンターで進む";
 }
 
 //==================================================
@@ -740,19 +922,280 @@ void spotScene_ans_ride(void)
 {
 	if (inputKey == 49)
 	{
+		quit = true;
 		goSpotID = warpStation;
-		money += price[0][0];
+		money += priceList[0][0];
 		bigPosY = spot[warpStation][1];
 		bigPosX = spot[warpStation][2];
 		warpStation = 0;
 
 		std::cout << "\n　";
-		nearbySpotName(goSpotID);
+		spotName(goSpotID);
 		std::cout << "へ移動しました";
 		spotScene_ans_money();
 
 		std::cin.seekg(0);
 		std::cin.get();
+	}
+}
+
+//==================================================
+//スポットシーン・結果ホテル関数
+//==================================================
+void spotScene_ans_hotel(void)
+{
+	//'1' == 49
+	for (int i = 0; i < 5; i++)
+	{
+		if (priceList[0][i] == -1)//-1円の商品（欠番）があった場合、なにもしない
+		{
+		}
+		else if (inputKey == i + 49)
+		{
+			quit = true;
+
+			money += priceList[0][i];
+
+			switch (i)
+			{
+			case 0:
+				std::cout << "\n　ホテルに泊まりました";
+				break;
+			case 1:
+				std::cout << "\n　日帰り温泉に入りました";
+				break;
+			default:
+				break;
+			}
+
+			spotScene_ans_money();
+
+			std::cin.seekg(0);
+			std::cin.get();
+		}
+	}
+}
+
+//==================================================
+//グッズリスト関数
+//==================================================
+void goodName(int id)
+{
+	switch (id)
+	{
+	case 0:
+		std::cout << "北海道限定ザンギおにぎり";
+		break;
+	case 1:
+		std::cout << "キリンガラナ";
+		break;
+	case 2:
+		std::cout << "リボンナポリン";
+		break;
+	case 3:
+		std::cout << "焼きそば弁当";
+		break;
+	case 4:
+		std::cout << "ナナチキ";
+		break;
+	case 5:
+		std::cout << "ローチキ";
+		break;
+	case 6:
+		std::cout << "道産ポテトのフライ";
+		break;
+	case 7:
+		std::cout << "ファミチキ";
+		break;
+	case 8:
+		std::cout << "ホテルに泊まる";
+		break;
+	case 9:
+		std::cout << "日帰り温泉に入浴";
+		break;
+	case 10:
+		std::cout << "芳醇ふわとろ月見セット";
+		break;
+	case 11:
+		std::cout << "ひるまック ダブルチーズバーガー セット";
+		break;
+	case 12:
+		std::cout << "ビッグマック セット";
+		break;
+	case 13:
+		std::cout << "炙り醤油風 ベーコントマト肉厚ビーフ セット";
+		break;
+	case 14:
+		std::cout << "てりやきチキンフィレオ セット";
+		break;
+	case 15:
+		std::cout << "";
+		break;
+	case 16:
+		std::cout << "";
+		break;
+	case 17:
+		std::cout << "";
+		break;
+	case 18:
+		std::cout << "";
+		break;
+	case 19:
+		std::cout << "";
+		break;
+	case 20:
+		std::cout << "";
+		break;
+	case 21:
+		std::cout << "";
+		break;
+	case 22:
+		std::cout << "";
+		break;
+	case 23:
+		std::cout << "";
+		break;
+	case 24:
+		std::cout << "";
+		break;
+	case 25:
+		std::cout << "";
+		break;
+	case 26:
+		std::cout << "";
+		break;
+	case 27:
+		std::cout << "";
+		break;
+	case 28:
+		std::cout << "";
+		break;
+	case 29:
+		std::cout << "";
+		break;
+	case 30:
+		std::cout << "";
+		break;
+	case 31:
+		std::cout << "";
+		break;
+	case 32:
+		std::cout << "";
+		break;
+	case 33:
+		std::cout << "";
+		break;
+	case 34:
+		std::cout << "";
+		break;
+	case 35:
+		std::cout << "";
+		break;
+	case 36:
+		std::cout << "";
+		break;
+	case 37:
+		std::cout << "";
+		break;
+	case 38:
+		std::cout << "";
+		break;
+	case 39:
+		std::cout << "";
+		break;
+	case 40:
+		std::cout << "";
+		break;
+	case 41:
+		std::cout << "";
+		break;
+	case 42:
+		std::cout << "";
+		break;
+	case 43:
+		std::cout << "";
+		break;
+	case 44:
+		std::cout << "";
+		break;
+	case 45:
+		std::cout << "";
+		break;
+	case 46:
+		std::cout << "";
+		break;
+	case 47:
+		std::cout << "";
+		break;
+	case 48:
+		std::cout << "";
+		break;
+	case 49:
+		std::cout << "";
+		break;
+	case 50:
+		std::cout << "";
+		break;
+	case 51:
+		std::cout << "";
+		break;
+	case 52:
+		std::cout << "";
+		break;
+	case 53:
+		std::cout << "";
+		break;
+	case 54:
+		std::cout << "";
+		break;
+	case 55:
+		std::cout << "";
+		break;
+	case 56:
+		std::cout << "";
+		break;
+	case 57:
+		std::cout << "";
+		break;
+	case 58:
+		std::cout << "";
+		break;
+	case 59:
+		std::cout << "";
+		break;
+	case 60:
+		std::cout << "";
+		break;
+	case 61:
+		std::cout << "";
+		break;
+	case 62:
+		std::cout << "";
+		break;
+	case 63:
+		std::cout << "";
+		break;
+	case 64:
+		std::cout << "";
+		break;
+	case 65:
+		std::cout << "";
+		break;
+	case 66:
+		std::cout << "";
+		break;
+	case 67:
+		std::cout << "";
+		break;
+	case 68:
+		std::cout << "";
+		break;
+	case 69:
+		std::cout << "";
+		break;
+	default:
+		std::cout << "このテキストが出るのはおかしいよ";
+		break;
 	}
 }
 
@@ -849,10 +1292,14 @@ void initializeMap(void)
 		{
 			map[y][x] = baseBigMap[scroll_Y + y][scroll_X + x];
 
-			//全角マーカースクロール時、消滅する際の半角の抹消を取消
-			if (map[y][0] == -1)
+
+			if (map[y][0] == -1)//横スクロール時右端全角消滅時のずれを修正
 			{
 				map[y][0] = 0;
+			}
+			else if (map[y][map_x - 1] >= 9 && map[y][map_x - 1] <= 98)//横スクロール時左端全角存在時非表示。9～98のマーカーは全角なため
+			{
+				map[y][map_x - 1] = 0;
 			}
 		}
 	}
@@ -865,7 +1312,7 @@ void playerPosSet(void)
 {
 	if (baseBigMap[bigPosY][bigPosX] != -1)
 	{
-		if (baseBigMap[bigPosY][bigPosX] >= 9)//9以上のマーカーは全角なため
+		if (baseBigMap[bigPosY][bigPosX] >= 9 && baseBigMap[bigPosY][bigPosX] <= 98)//9～98のマーカーは全角なため
 		{
 			map[bigPosY - scroll_Y][bigPosX - scroll_X + 1] = 0;//全角重なり時ずれ回避用半角スペース挿入
 		}
@@ -995,7 +1442,7 @@ void nearbySpotSearch(void)
 	int PY_Distance = 0;
 	int PX_Distance = 0;
 
-	int spotDistance[SPOT][2] = {};//プレイヤーとの距離とスポット番号を入れてソート、上位3つをnearbySpot（グローバル変数）に代入
+	int spotDistance[SPOT][2] = {};//プレイヤーとの距離とスポット番号を入れて昇順にソート、上位3つをnearbySpot（グローバル変数）に代入
 
 	for (int i = 0; i < SPOT; i++)
 	{
@@ -1006,7 +1453,7 @@ void nearbySpotSearch(void)
 		spotDistance[i][1] = i;
 	}
 
-	//昇順にバブルソート（ChatGPTに書いてもらった）
+	//昇順にバブルソート（ChatGPT）
 	for (int i = 0; i < SPOT - 1; i++)
 	{
 		for (int j = 0; j < SPOT - i - 1; j++)
@@ -1021,7 +1468,7 @@ void nearbySpotSearch(void)
 	}
 
 	//上位3つのスポット番号をnearbySpot（グローバル変数）に代入
-	for (int i = 0; i < PICKUPSPOT; i++)
+	for (int i = 0; i < PICKUP_SPOT; i++)
 	{
 		nearbySpot[0][i] = spotDistance[i][1];
 	}
@@ -1032,23 +1479,23 @@ void nearbySpotSearch(void)
 //==================================================
 void nearbySpotDrow(void)
 {
-	for (int i = 0; i < PICKUPSPOT; i++)
+	for (int i = 0; i < PICKUP_SPOT; i++)
 	{
 
 		std::cout << "　" << i + 1 << "：[";
 		markerDrow(spot[nearbySpot[0][i]][0]);
 		std::cout << "] ";
 
-		nearbySpotName(nearbySpot[0][i]);
+		spotName(nearbySpot[0][i]);
 
 		std::cout << "　";
 	}
 }
 
 //==================================================
-//周辺スポットリスト描画関数
+//スポット名称描画関数
 //==================================================
-void nearbySpotName(int id)
+void spotName(int id)
 {
 	switch (id)
 	{
@@ -1218,18 +1665,48 @@ void nearbySpotName(int id)
 		std::cout << "";
 		break;
 	case 55:
-		std::cout << "";
+		std::cout << "ドトール 札幌時計台通店";
 		break;
 	case 56:
-		std::cout << "";
+		std::cout << "ドトール 北海道庁店";
 		break;
 	case 57:
-		std::cout << "";
+		std::cout << "ドトール 札幌北一条通店";
 		break;
 	case 58:
-		std::cout << "";
+		std::cout << "セイコーマート 北海道庁";
 		break;
 	case 59:
+		std::cout << "セイコーマート 道庁前北";
+		break;
+	case 60:
+		std::cout << "セイコーマート 北3条";
+		break;
+	case 61:
+		std::cout << "セイコーマート 大通ビッセ";
+		break;
+	case 62:
+		std::cout << "セイコーマート 大通バスセンター";
+		break;
+	case 63:
+		std::cout << "セイコーマート 南1条西4丁目";
+		break;
+	case 64:
+		std::cout << "";
+		break;
+	case 65:
+		std::cout << "";
+		break;
+	case 66:
+		std::cout << "";
+		break;
+	case 67:
+		std::cout << "";
+		break;
+	case 68:
+		std::cout << "";
+		break;
+	case 69:
 		std::cout << "";
 		break;
 	default:
