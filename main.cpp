@@ -1,7 +1,7 @@
 ﻿//==================================================
-//main.cpp:
+//main.cpp:マップチップ・配列を乱用して遊ぼう
 // 
-//author:鶴岡遼大 date:2024/
+//author:鶴岡遼大 date:2024/7/10
 //==================================================
 #include<iostream>
 #include<stdlib.h>//ランダム
@@ -19,30 +19,28 @@
 #define BIGMAP_Y (148)//縦
 #define BIGMAP_X (145)//横
 
-#define DEF_MAP_Y (21)//20縦
-#define DEF_MAP_X (120)//120横
-#define DEF_SCROLLSTOP_Y (10)//10
-#define DEF_SCROLLSTOP_X (60)//60
+#define MAP_Y (21)//20縦
+#define MAP_X (120)//120横
+#define SCROLLSTOP_Y (10)//10
+#define SCROLLSTOP_X (60)//60
 
 #define SPOT (100)//100
 #define GOODS (100)//100
 #define PICKUP_SPOT (3)//ピックアップする近接のスポットの数
 #define PICKUP_GOODS (5)//ピックアップする最大のgoodsの数
-
+#define QUEST_SPOT (3)//クエストspot
+#define QUEST_GOODS (3)//クエストgoods
 
 #define PLAYER_Y (12)//プレイヤー初期位置Y
 #define PLAYER_X (59)//プレイヤー初期位置X
 
 //==================================================
-//列挙体宣言
-//==================================================
-
-//==================================================
 //プロトタイプ宣言
 //==================================================
 
-void titleScene(void);
 void firstSetup(void);
+void titleScene(void);
+void questScene(void);
 void movePlayer(void);
 void spotScene(void);
 void spotScene_explanation(void);
@@ -52,7 +50,8 @@ void spotScene_ans_buy(void);
 void spotScene_ans_money(void);
 void spotScene_ans_ride(void);
 void spotScene_ans_hotel(void);
-void goodName(int id);
+void endingScene(void);
+void goodsName(int id);
 void obstacleDetection(void);
 void mapScroll(void);
 void initializeMap(void);
@@ -224,7 +223,7 @@ int bigMap[BIGMAP_Y][BIGMAP_X] = {
 //ゲームプレイ中の初期化に使用するマップ（spotもここに）
 int baseBigMap[BIGMAP_Y][BIGMAP_X];
 
-int map[DEF_MAP_Y][DEF_MAP_X];
+int map[MAP_Y][MAP_X];
 
 //スポット　マーカーID/BIGY/BIGX
 int spot[SPOT][3] = {
@@ -370,11 +369,11 @@ int goods[GOODS][4] = {
 	{ -1, 13, -1, 840},//炙り醤油風 ベーコントマト肉厚ビーフ セット
 	{ -1, 13, -1, 690},//てりやきチキンフィレオ セット
 	//15
-	{ -1, -1, -1, 0},//
-	{ -1, -1, -1, 0},//
-	{ -1, -1, -1, 0},//
-	{ -1, -1, -1, 0},//
-	{ -1, -1, -1, 0},//
+	{ 37, -1, -1, 713},//テレビ父さんクッキー
+	{ -1, 19, -1, 1100},//じゃがポックル　オホーツクの塩味
+	{ -1, 19, -1, 1036},//白い恋人 12枚入
+	{ 24, -1, -1, 1320},//時計台ジグソーパズル
+	{ 2, -1, -1, 1360},//JRタワー展望室 タワー・スリーエイト
 	//20
 	{ -1, -1, -1, 0},//
 	{ -1, -1, -1, 0},//
@@ -473,30 +472,33 @@ int goods[GOODS][4] = {
 	{ -1, -1, -1, 0}//
 };
 
-//近くのスポットリスト上位３つ
-int nearbySpot[1][PICKUP_SPOT] = {};
-
 //宣言と初期化
-int map_y = DEF_MAP_Y;
-int map_x = DEF_MAP_X;
-int scrollStop_y = DEF_SCROLLSTOP_Y;
-int scrollStop_x = DEF_SCROLLSTOP_X;
-
 int bigPosY = PLAYER_Y;
 int bigPosX = PLAYER_X;
 int scroll_Y = 0;//スクロールのためのずらす数y軸
 int scroll_X = 0;//スクロールのためのずらす数x軸
 
-int prevBigPosY = PLAYER_Y;
-int prevBigPosX = PLAYER_X;
+int prevBigPosY = 0;//1つ前のプレイヤー位置Y
+int prevBigPosX = 0;//1つ前のプレイヤー位置X
+
+int step = 0;//歩数
+
+int spotQuest[QUEST_SPOT][2] = {};//spotクエスト配列
+int goodsQuest[QUEST_GOODS][2] = {};//goodsクエスト配列
+
+int nearbySpot[1][PICKUP_SPOT] = {};//近くのスポットリスト上位３つ
 
 int money = 0;//使用金額の合計
 
 bool quit = true;//spotScene退出フラグ
 
 int goSpotID = 0;//spotScene用呼び出されたスポットID
-int priceList[1][5] = {};//spotScene用値段リスト
+int goodsList[PICKUP_GOODS][2] = {};//spotScene用値段リスト
 int warpStation = 0;//spotScene_station用移動先駅スポットID
+
+int endingCount = 0;//PICKUP_SPOT + PICKUP_GOODSと同じになればクリア
+
+int randNum = 0;//rand()用
 
 char inputKey = '\0';
 
@@ -505,12 +507,21 @@ char inputKey = '\0';
 //==================================================
 int main(void)
 {
+	firstSetup();//初期設定・クエスト設定
+
 	titleScene();//タイトルロゴと説明
 
-	firstSetup();//初期設定
+	questScene();//初回クエスト提示
 
 	for (;;)
 	{
+		//クエストメニュー呼び出し
+		if (inputKey == 'q')
+		{
+			system("cls");
+			questScene();
+		}
+
 		movePlayer();//プレイヤー移動
 
 		spotScene();//スポットウィンドウ
@@ -522,6 +533,26 @@ int main(void)
 		initializeMap();//マップ初期化
 
 		playerPosSet();//移動後プレイヤー位置設定
+
+		endingCount = 0;//毎回計数することでバグをなくす
+
+		//spotクエスト
+		for (int i = 0; i < QUEST_SPOT; i++)
+		{
+			endingCount += spotQuest[i][1];
+		}
+		//goodsクエスト
+		for (int i = 0; i < QUEST_GOODS; i++)
+		{
+			endingCount += goodsQuest[i][1];
+		}
+
+		//エンディングシーン
+		if (endingCount == QUEST_SPOT + QUEST_GOODS)
+		{
+			endingScene();
+			return 0;
+		}
 
 		//消して描画（上下●線）
 		system("cls");
@@ -538,6 +569,64 @@ int main(void)
 
 		//キー入力受付
 		inputKey = _getch();
+	}
+}
+
+//==================================================
+//初期設定関数
+//==================================================
+void firstSetup(void)
+{
+	//初回ベースマップの設定
+	for (int y = 0; y < BIGMAP_Y; y++)
+	{
+		for (int x = 0; x < BIGMAP_X; x++)
+		{
+			baseBigMap[y][x] = bigMap[y][x];
+		}
+	}
+
+	//SPOTの設定
+	for (int i = 0; i < SPOT; i++)
+	{
+		baseBigMap[spot[i][1]][spot[i][2]] = spot[i][0];
+
+		if (0 < spot[i][1] + spot[i][2])//欠番でないなら
+		{
+			baseBigMap[spot[i][1]][spot[i][2] + 1] = -1;//全角対策、指定の右隣を抹消
+		}
+	}
+
+	srand(time(0));//ランダム設定
+
+	//spotクエスト
+	for (int i = 0; i < QUEST_SPOT; i++)
+	{
+		for (;;)
+		{
+			randNum = rand() % SPOT;
+
+			if (spot[randNum][0] != 3)//何かしら登録されている項目の場合
+			{
+				spotQuest[i][0] = randNum;//登録
+				break;
+			}
+		}
+	}
+
+	//goodsクエスト
+	for (int i = 0; i < QUEST_GOODS; i++)
+	{
+		for (;;)
+		{
+			randNum = rand() % GOODS;
+
+			if (goods[randNum][3] > 0)//何かしら登録されている項目の場合
+			{
+				goodsQuest[i][0] = randNum;//登録
+				break;
+			}
+		}
 	}
 }
 
@@ -574,23 +663,23 @@ void titleScene(void)
 
 	//説明
 	line();
-	std::cout << "\n\n　このゲームは札幌の街を探索し、気になる店や商品を発見するゲームです。";
-	std::cout << "\n\n　……しかしほとんどの部分がほぼ未完成です。";
-	std::cout << "\n\n　できる限り動く状況にはしましたので、温かい目で遊んでいただけると幸いです。";
+	std::cout << "\n\n　このゲームは札幌の街を探索し、気になる店や商品を発見するゲームです。クエストは最初に提示されますが、";
+	std::cout << "\n\n　クリアするもしないもプレイヤーの自由。もし興味が出たならば、本物の北海道・札幌の街に赴いて欲しいです！";
 	std::cout << "\n\n";
 	line();
 	std::cout << "\n\n　【 遊び方 】";
-	std::cout << "\n\n　WASD：移動 / 数字キー：項目選択 / ESC(Escape)：前の画面に戻る / エンターキー：進む";
+	std::cout << "\n\n　WASD：移動 / 数字キー：項目選択 / Q：クエスト進捗 /Escape・Enter：戻る・進む";
 	std::cout << "\n\n";
 	line();
-	std::cout << "\n\n　【 今後のアップデート内容 】";
-	std::cout << "\n\n　・Y座標：84から下、狸小路・すすきのエリアの追加（現在はバリケード[#]で封鎖しています）";
-	std::cout << "\n\n　・クエスト";
-	std::cout << "\n\n　・クリア画面";
+	std::cout << "\n\n　【できること】";
+	std::cout << "\n\n　・クエストを達成してゲームクリア！";
+	std::cout << "\n\n　・[★][☆] → 観光スポットの説明";
+	std::cout << "\n\n　【 特記事項 】";
+	std::cout << "\n\n　・Y座標：84から下、狸小路・すすきのエリアは未実装です（現在はバリケード[#]で封鎖しています）";
 	std::cout << "\n\n";
 	line();
 	std::cout << "\n\n　【 エンターでプレイ開始！ 】";
-	std::cout << "\n\n\n";
+	std::cout << "\n\n";
 	line();
 
 	std::cin.seekg(0);
@@ -599,29 +688,61 @@ void titleScene(void)
 }
 
 //==================================================
-//初期設定関数
+//クエストシーン関数
 //==================================================
-void firstSetup(void)
+void questScene(void)
 {
-	//初回ベースマップの設定
-	for (int y = 0; y < BIGMAP_Y; y++)
+	line();
+	std::cout << "\n\n　達成済：" << endingCount << "つ";
+
+	std::cout << "\n\n　ここに行くとクリア！\n";
+
+	//spotクエストリスト描画
+	for (int i = 0; i < QUEST_SPOT; i++)
 	{
-		for (int x = 0; x < BIGMAP_X; x++)
+		std::cout << "\n";
+
+		if (spotQuest[i][1] == 1)
 		{
-			baseBigMap[y][x] = bigMap[y][x];
+			std::cout << "　【達成！】";
 		}
+		else
+		{
+			std::cout << "　【未達成】";
+		}
+
+		std::cout << i + 1 << ".";
+		spotName(spotQuest[i][0]);
 	}
 
-	//SPOTの設定
-	for (int i = 0; i < SPOT; i++)
-	{
-		baseBigMap[spot[i][1]][spot[i][2]] = spot[i][0];
+	std::cout << "\n\n　これを買うとクリア！\n";
 
-		if (0 < spot[i][1] + spot[i][2])//欠番でないなら
+	//goodsクエストリスト描画
+	for (int i = 0; i < QUEST_GOODS; i++)
+	{
+		std::cout << "\n";
+
+		if (goodsQuest[i][1] == 1)
 		{
-			baseBigMap[spot[i][1]][spot[i][2] + 1] = -1;//全角対策、指定の右隣を抹消
+			std::cout << "　【達成！】";
 		}
+		else
+		{
+			std::cout << "　【未達成】";
+		}
+
+		std::cout << i + 1 << ".";
+		goodsName(goodsQuest[i][0]);
+		std::cout << "：" << goods[goodsQuest[i][0]][3] << "円";
 	}
+
+	std::cout << "\n\n";
+	line();
+	std::cout << "\n\n　【 エンターで進む 】";
+
+	std::cin.seekg(0);
+	std::cin.get();
+	system("cls");
 }
 
 //==================================================
@@ -632,6 +753,7 @@ void movePlayer(void)
 	//１つ前のプレイヤー位置保持
 	prevBigPosY = bigPosY;
 	prevBigPosX = bigPosX;
+	step++;
 
 	//入力判定
 	if (inputKey == 'w')
@@ -670,10 +792,13 @@ void spotScene(void)
 
 	while (quit == false)
 	{
-		//price初期化
-		for (int i = 0; i < 5; i++)
+		//goodslist初期化
+		for (int i = 0; i < 2; i++)
 		{
-			priceList[0][i] = -1;
+			for (int j = 0; j < PICKUP_GOODS; j++)
+			{
+				goodsList[j][i] = -1;
+			}
 		}
 
 		system("cls");
@@ -682,6 +807,17 @@ void spotScene(void)
 		markerDrow(spot[goSpotID][0]);
 		std::cout << "]　";
 		spotName(goSpotID);
+
+		//spotクエスト判定
+		for (int i = 0; i < QUEST_SPOT; i++)
+		{
+			if (spotQuest[i][0] == goSpotID && spotQuest[i][1] == 0)
+			{
+				spotQuest[i][1] = 1;
+				std::cout << "\n\n　【クエスト達成！】";
+				break;
+			}
+		}
 
 		//観光名所など説明・フレーバーテキスト
 		spotScene_explanation();
@@ -707,7 +843,9 @@ void spotScene(void)
 			|| spot[goSpotID][0] == 12//ローソン
 			|| spot[goSpotID][0] == 14//セコマ
 			|| spot[goSpotID][0] == 15//ファミマ
-			|| spot[goSpotID][0] == 13)//マクドナルド
+			|| spot[goSpotID][0] == 13//マクドナルド
+			|| spot[goSpotID][0] == 19//☆
+			|| spot[goSpotID][0] == 16)//★
 		{
 			spotScene_ans_buy();
 		}
@@ -744,6 +882,9 @@ void spotScene_explanation(void)
 	case 10:
 		std::cout << "\n\n　預金額：2,007,831円";
 		break;
+	case 17:
+		std::cout << "\n\n　コーヒー豆切れのため営業停止中";
+		break;
 	default:
 		break;
 	}
@@ -751,16 +892,41 @@ void spotScene_explanation(void)
 	//他特定スポット
 	switch (goSpotID)
 	{
+	case 0://大丸
+		std::cout << "\n\n　札幌駅に直結のJRタワーに所在する百貨店。2010年以降、売上高では大通地区の丸井今井札幌本店を抑えて地域一番店である。\n\n　https://ja.wikipedia.org/wiki/大丸札幌店　より、一部改変";
+		break;
+	case 1://ステラプレイス
+		std::cout << "\n\n　札幌駅直結のショッピングセンター。ファッションやヘルス&ビューティ関連の専門店、\n　レストランやカフェなどの飲食店、シネマコンプレックスなどがある。\n\n　https://ja.wikipedia.org/wiki/札幌ステラプレイス　より、一部改変";
+		break;
+	case 2://JRタワー
+		std::cout << "\n\n　ステラプレイスや大丸、JRタワーホテル日航札幌、展望台となるJRタワー展望室 タワー・スリーエイトを内包する複合商業ビル。\n\n　作者自筆";
+		break;
+	case 3://東急百貨店
+		std::cout << "\n\n　ビックカメラやユニクロ、GU、バンダイナムコアミューズメント等がある百貨店。\n\n　作者自筆";
+		break;
+	case 15://赤レンガテラス
+		std::cout << "\n\n　“新しい感性と出会う、札幌の中庭”をコンセプトに、北海道初出店・新業態を含む店舗が多数出店。\n　赤れんが庁舎が一望できる「眺望ギャラリー」や憩いの広場空間「アトリウムテラス」など、\n　都会にいながらも自然を感じられる施設に。\n\n　https://mitsui-shopping-park.com/urban/akatera/　より";
+		break;
+	case 22://札幌市民交流プラザ
+		std::cout << "\n\n　“国内外の優れた舞台芸術やさまざまな公演を鑑賞できる「札幌文化芸術劇場 hitaru（ヒタル）」\n　市民の文化芸術活動をサポートし、札幌の文化芸術を支え、育てていく「札幌文化芸術交流センター SCARTS（スカーツ）」\n　都心に集う人々に仕事やくらしに役立つ情報を提供する課題解決型図書館「札幌市図書・情報館」の3つからなる、複合施設です。\n\n　https://sapporo-community-plaza.jp/about.html　より";
+		break;
 	case 24://札幌市時計台
 		std::cout << "\n\n　「札幌市時計台」その正式名称は「旧札幌農学校演武場」。北海道大学の前身である札幌農学校の施設として、\n　初代教頭であるクラーク博士の構想に基づき明治11年に建設されました。これまでに教育団体の事務所や軍用施設、\n　昭和には市立図書館として活躍してきたこの建物は、昭和45年6月に国の重要文化財に指定。\n　幾度かの修復工事を経ながら、現在は札幌市を代表する名物スポットとして、\n　そして市民に時を告げる時計塔として愛され続けています。\n\n　https://www.sapporo.travel/spot/facility/clock_tower/　より";
 		break;
 	case 28://北海道庁旧本庁舎(赤れんが庁舎)
 		std::cout << "\n\n　札幌の北3条通から西方面を望むと、突き当たりに堂々とした姿を現す北海道庁旧本庁舎。\n　「赤れんが庁舎」の愛称で知られる煉瓦づくりの建物は、現在使われている新庁舎ができるまで約80年に渡って\n　道政を担ってきた歴史ある建物です。1888年（明治21年）に建てられたアメリカ風ネオ・バロック様式の建築で、\n　明治時代に作られたひずみのあるガラスなど、まるでタイムスリップしたような感覚に。\n　館内は一般に無料公開され、北海道の歴史をたどる資料も展示されています。\n　散策の後に楽しみたい周辺のグルメスポットも要チェックです。\n\n　https://www.sapporo.travel/spot/facility/former_hokkaido_government_office/　より、一部改変";
 		break;
+	case 33://大通ビッセ
+		std::cout << "\n\n　ビッセではじめる、北のいい暮らし。グルメ、ショッピング、ライフスタイル。\n　あなたにぴったりの、あなただけの「特別」がここにあります。\n\n　https://www.odori-bisse.com/　より";
+		break;
+	case 36://カナモトホール
+		std::cout << "\n\n　カナモトホール（札幌市民ホール）は、1500席の大ホールと小･中･大会議室を完備した、音楽･演劇･講演会、\n　コンベンションに幅広くご利用いただける多目的ホールです。\n\n　https://sapporo-shiminhall.org/　より";
+		break;
 	case 37://さっぽろテレビ塔
 		std::cout << "\n\n　札幌の中心部を南北に分ける大通公園。その出発点、西1丁目に建つのが1956年に完成した「さっぽろテレビ塔」。\n　完成以来、半世紀以上にわたって札幌の発展を見届けるランドマーク的存在となっています。\n　地上約90mの展望台からは、季節ごとに表情を変える大通公園の美しい風景やイベントの様子が楽しめ、\n　天気がよければ石狩平野や日本海も見渡せるでしょう。\n　特に、大通公園を会場にホワイトイルミネーションや雪まつりが開催される冬は、展望台が景色を眺める特等席。\n　閉館後の30分間、展望台を貸切りにすることができる特別プランもカップルや夫婦に人気です。\n\n　https://www.sapporo.travel/spot/facility/sapporo_tv_tower/　より、一部改変";
 		break;
-	default:
+	case 39://丸井今井札幌本店
+		std::cout << "\n\n　明治期に北海道唯一の呉服店として始まり、最盛期には道内7店舗を展開した。\n　経営不振から2009年に倒産し、現在は三越伊勢丹ホールディングスが運営している。\n\n　https://ja.wikipedia.org/wiki/丸井今井　より、一部改変";
 		break;
 	}
 }
@@ -774,14 +940,7 @@ void spotScene_list_shop(void)
 	int targetMarkerID = spot[goSpotID][0];
 	int targetGroupID = 999;
 	int goodsID = 0;
-	int goodsList[1][PICKUP_GOODS];
 	int goodsListNum = 0;
-
-	//goodlist初期化
-	for (int i = 0; i < PICKUP_GOODS; i++)
-	{
-		goodsList[0][i] = 999;
-	}
 
 	//group分類
 	switch (spot[goSpotID][0])
@@ -806,45 +965,48 @@ void spotScene_list_shop(void)
 		//spotID判定
 		if (goods[i][0] == targetSpotID)
 		{
-			goodsList[0][goodsListNum] = i;
+			goodsList[goodsListNum][0] = i;
 			goodsListNum++;
 		}
 		//markerID判定
 		else if (goods[i][1] == targetMarkerID)
 		{
-			goodsList[0][goodsListNum] = i;
+			goodsList[goodsListNum][0] = i;
 			goodsListNum++;
 		}
 		//groupID判定
 		else if (goods[i][2] == targetGroupID)
 		{
-			goodsList[0][goodsListNum] = i;
+			goodsList[goodsListNum][0] = i;
 			goodsListNum++;
 		}
 
 		if (goodsListNum == PICKUP_GOODS)
 		{
-			std::cout << "\n";
 			break;
 		}
+	}
 
+	//何かしらリストにあれば改行
+	if (goodsList[0][0] != -1)
+	{
+		std::cout << "\n";
 	}
 
 	//リスト描画
 	for (int i = 0; i < PICKUP_GOODS; i++)
 	{
 		//欠番が来たら終了
-		if (goodsList[0][i] == 999)
+		if (goodsList[i][0] == -1)
 		{
 			break;
 		}
 
 		//値段の代入
-		priceList[0][i] = goods[goodsList[0][i]][3];
-
+		goodsList[i][1] = goods[goodsList[i][0]][3];
 		std::cout << "\n　" << i + 1 << ".";
-		goodName(goodsList[0][i]);
-		std::cout << "：" << priceList[0][i] << "円";
+		goodsName(goodsList[i][0]);
+		std::cout << "：" << goodsList[i][1] << "円";
 	}
 
 	std::cout << "\n";
@@ -858,7 +1020,7 @@ void spotScene_list_station(void)
 	if (goSpotID != 49)//東西線大通駅でないなら
 	{
 		warpStation = 0;
-		priceList[0][0] = 210;
+		goodsList[0][1] = 210;
 
 		//その場凌ぎのハードコード
 		if (goSpotID == 45)//南北線さっぽろ駅
@@ -869,7 +1031,7 @@ void spotScene_list_station(void)
 		{
 			warpStation = 45;//南北線さっぽろ駅
 		}
-		if (goSpotID == 46)//東豊線さっぽろ駅
+		else if (goSpotID == 46)//東豊線さっぽろ駅
 		{
 			warpStation = 48;//東豊線大通駅
 		}
@@ -880,7 +1042,7 @@ void spotScene_list_station(void)
 
 		std::cout << "\n　1.";
 		spotName(warpStation);
-		std::cout << "へ移動：" << priceList[0][0] << "円\n";
+		std::cout << "へ移動：" << goodsList[0][1] << "円\n";
 	}
 }
 
@@ -892,13 +1054,26 @@ void spotScene_ans_buy(void)
 	//'1' == 49
 	for (int i = 0; i < 5; i++)
 	{
-		if (priceList[0][i] == -1)//-1円の商品（欠番）があった場合、なにもしない
+		if (goodsList[i][1] == -1)//-1円の商品（欠番）があった場合、なにもしない
 		{
 		}
 		else if (inputKey == i + 49)
 		{
-			money += priceList[0][i];
-			std::cout << "\n　 " << i + 1 << ".の商品を購入しました";
+			//goodsクエスト判定
+			for (int j = 0; j < QUEST_GOODS; j++)
+			{
+				if (goodsList[i][0] == goodsQuest[j][0] && goodsQuest[j][1] == 0)
+				{
+					goodsQuest[j][1] = 1;
+					std::cout << "\n\n　【クエスト達成！】\n";
+					break;
+				}
+			}
+
+			money += goodsList[i][1];
+			std::cout << "\n　 " << i + 1 << ".の";
+			goodsName(goodsList[i][0]);
+			std::cout << "を購入しました";
 			spotScene_ans_money();
 
 			std::cin.seekg(0);
@@ -925,10 +1100,21 @@ void spotScene_ans_ride(void)
 	{
 		quit = true;
 		goSpotID = warpStation;
-		money += priceList[0][0];
+		money += goodsList[0][1];
 		bigPosY = spot[warpStation][1];
 		bigPosX = spot[warpStation][2];
 		warpStation = 0;
+
+		//spotクエスト判定
+		for (int j = 0; j < QUEST_SPOT; j++)
+		{
+			if (goSpotID == spotQuest[j][0] && spotQuest[j][1] == 0)
+			{
+				spotQuest[j][1] = 1;
+				std::cout << "\n\n　【クエスト達成！】\n";
+				break;
+			}
+		}
 
 		std::cout << "\n　";
 		spotName(goSpotID);
@@ -948,14 +1134,24 @@ void spotScene_ans_hotel(void)
 	//'1' == 49
 	for (int i = 0; i < 5; i++)
 	{
-		if (priceList[0][i] == -1)//-1円の商品（欠番）があった場合、なにもしない
+		if (goodsList[i][1] == -1)//-1円の商品（欠番）があった場合、なにもしない
 		{
 		}
 		else if (inputKey == i + 49)
 		{
-			quit = true;
+			//goodsクエスト判定
+			for (int j = 0; j < QUEST_GOODS; j++)
+			{
+				if (goodsList[i][0] == goodsQuest[j][0] && goodsQuest[j][1] == 0)
+				{
+					goodsQuest[j][1] = 1;
+					std::cout << "\n\n　【クエスト達成！】\n";
+					break;
+				}
+			}
 
-			money += priceList[0][i];
+			quit = true;
+			money += goodsList[i][1];
 
 			switch (i)
 			{
@@ -980,7 +1176,7 @@ void spotScene_ans_hotel(void)
 //==================================================
 //グッズリスト関数
 //==================================================
-void goodName(int id)
+void goodsName(int id)
 {
 	switch (id)
 	{
@@ -1030,19 +1226,19 @@ void goodName(int id)
 		std::cout << "てりやきチキンフィレオ セット";
 		break;
 	case 15:
-		std::cout << "";
+		std::cout << "テレビ父さんクッキー";
 		break;
 	case 16:
-		std::cout << "";
+		std::cout << "じゃがポックル　オホーツクの塩味";
 		break;
 	case 17:
-		std::cout << "";
+		std::cout << "白い恋人";
 		break;
 	case 18:
-		std::cout << "";
+		std::cout << "時計台ジグソーパズル";
 		break;
 	case 19:
-		std::cout << "";
+		std::cout << "JRタワー展望室 タワー・スリーエイト（展望台観覧チケット）";
 		break;
 	case 20:
 		std::cout << "";
@@ -1210,22 +1406,27 @@ void obstacleDetection(void)
 	case 1:
 		bigPosY = prevBigPosY;
 		bigPosX = prevBigPosX;
+		step--;
 		break;
 	case 2:
 		bigPosY = prevBigPosY;
 		bigPosX = prevBigPosX;
+		step--;
 		break;
 	case 3:
 		bigPosY = prevBigPosY;
 		bigPosX = prevBigPosX;
+		step--;
 		break;
 	case 5:
 		bigPosY = prevBigPosY;
 		bigPosX = prevBigPosX;
+		step--;
 		break;
 	case 8:
 		bigPosY = prevBigPosY;
 		bigPosX = prevBigPosX;
+		step--;
 		break;
 	default:
 		break;
@@ -1235,6 +1436,7 @@ void obstacleDetection(void)
 	if (baseBigMap[prevBigPosY][prevBigPosX] == 4 && baseBigMap[bigPosY][bigPosX] != 4)
 	{
 		bigPosY = prevBigPosY;
+		step--;
 	}
 
 }
@@ -1247,37 +1449,37 @@ void mapScroll(void)
 	//Y・縦
 
 	//プレイヤー中心に来るまで
-	if (bigPosY <= scrollStop_y)
+	if (bigPosY <= SCROLLSTOP_Y)
 	{
 		scroll_Y = 0;
 	}
 	//プレイヤー中心
-	else if (bigPosY > scrollStop_y && bigPosY - scrollStop_y < BIGMAP_Y - map_y)
+	else if (bigPosY > SCROLLSTOP_Y && bigPosY - SCROLLSTOP_Y < BIGMAP_Y - MAP_Y)
 	{
-		scroll_Y = bigPosY - scrollStop_y;
+		scroll_Y = bigPosY - SCROLLSTOP_Y;
 	}
 	//プレイヤー下端に到達
 	else
 	{
-		scroll_Y = BIGMAP_Y - map_y;
+		scroll_Y = BIGMAP_Y - MAP_Y;
 	}
 
 	//X・横
 
 	//プレイヤー中心に来るまで
-	if (bigPosX <= scrollStop_x)
+	if (bigPosX <= SCROLLSTOP_X)
 	{
 		scroll_X = 0;
 	}
 	//プレイヤー中心
-	else if (bigPosX > scrollStop_x && bigPosX - scrollStop_x < BIGMAP_X - map_x)
+	else if (bigPosX > SCROLLSTOP_X && bigPosX - SCROLLSTOP_X < BIGMAP_X - MAP_X)
 	{
-		scroll_X = bigPosX - scrollStop_x;
+		scroll_X = bigPosX - SCROLLSTOP_X;
 	}
 	//プレイヤー右端に到達
 	else
 	{
-		scroll_X = BIGMAP_X - map_x;
+		scroll_X = BIGMAP_X - MAP_X;
 	}
 }
 
@@ -1287,9 +1489,9 @@ void mapScroll(void)
 void initializeMap(void)
 {
 	//描画マップ設定
-	for (int y = 0; y < map_y; y++)
+	for (int y = 0; y < MAP_Y; y++)
 	{
-		for (int x = 0; x < map_x; x++)
+		for (int x = 0; x < MAP_X; x++)
 		{
 			map[y][x] = baseBigMap[scroll_Y + y][scroll_X + x];
 
@@ -1298,9 +1500,9 @@ void initializeMap(void)
 			{
 				map[y][0] = 0;
 			}
-			else if (map[y][map_x - 1] >= 9 && map[y][map_x - 1] <= 98)//横スクロール時左端全角存在時非表示。9～98のマーカーは全角なため
+			else if (map[y][MAP_X - 1] >= 9 && map[y][MAP_X - 1] <= 98)//横スクロール時左端全角存在時非表示。9～98のマーカーは全角なため
 			{
-				map[y][map_x - 1] = 0;
+				map[y][MAP_X - 1] = 0;
 			}
 		}
 	}
@@ -1327,9 +1529,9 @@ void playerPosSet(void)
 void drowMap(void)
 {
 	//マップの描画
-	for (int y = 0; y < map_y; y++)
+	for (int y = 0; y < MAP_Y; y++)
 	{
-		for (int x = 0; x < map_x; x++)
+		for (int x = 0; x < MAP_X; x++)
 		{
 			markerDrow(map[y][x], x);
 		}
@@ -1564,7 +1766,7 @@ void spotName(int id)
 		std::cout << "セイコーマート 北2条";
 		break;
 	case 22:
-		std::cout << "札幌文化芸術劇場hitaru";
+		std::cout << "札幌市民交流プラザ";
 		break;
 	case 23:
 		std::cout << "セブンイレブン さっぽろ創世スクエア";
@@ -1718,10 +1920,28 @@ void spotName(int id)
 //==================================================
 void line(void)
 {
-	for (int i = 0; i < DEF_MAP_X / 2; i++)
+	for (int i = 0; i < MAP_X / 2; i++)
 	{
 		std::cout << "●";
 	}
+}
+
+//==================================================
+//エンディングシーン関数
+//==================================================
+void endingScene(void)
+{
+	system("cls");
+
+	line();
+	std::cout << "\n\n　お疲れさまでした！無事、" << endingCount << "つのクエストを全て達成することが出来たようです！";
+	std::cin.get();
+	std::cout << "\n　クエストはランダムに変わります。また遊んでね！";
+	std::cin.get();
+	std::cout << "\n\n　使った金額：" << money << "円　歩数：" << step;
+	std::cout << "\n\n\n　【エンターで終わる】\n\n";
+	line();
+	std::cin.get();
 }
 
 //==================================================
@@ -1732,6 +1952,7 @@ void debug(void)
 	//デバッグテキスト
 	std::cout << "\n";
 	std::cout << "\n　座標Y,X：" << bigPosY << ", " << bigPosX;
+	//std::cout << "\n　歩数：" << step;
 	//std::cout << "\nscroll_Y,X " << scroll_Y << " / " << scroll_X;
-	std::cout << "\n";
+	std::cout << "\n\n　1.2.3：スポット選択　Q：クエスト";
 }
