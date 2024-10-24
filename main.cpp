@@ -423,7 +423,7 @@ void titleScene(void)
 	//タイトルロゴ
 	std::cout << "\n\n";
 	line();
-	std::cout << "\n\n\n\n";
+	std::cout << "\n\n\n";
 	std::cout << "\n　　　　　　　　●　　●　　　　　　　　●　　　　●　　●●●●●　　●　　　●　　　●　　　●●●　　●";
 	std::cout << "\n　　　　　　　●●●●●●　　　　　●●●●●　●　●　●　　　●　　●●　●●　　　●　　　●　　●　●";
 	std::cout << "\n　　　　　　　　●　　●　　　　　　　　●　　　　●　　●　　　●　　●　●　●　　●　●　　●　　●　●";
@@ -432,11 +432,12 @@ void titleScene(void)
 	std::cout << "\n　　　　　　　　　●　　　　●　　　●　●　●　　　　　●●●●●　　●　　　●　●　　　●　●　　　　●";
 	std::cout << "\n";
 	std::cout << "\n";
-	std::cout << "\n";
 	std::cout << "\n　　　　　　　　　　　　　　　　　　　　　　　あなたはどこでなにをする？";
 	std::cout << "\n";
 	std::cout << "\n";
-	std::cout << "\n　　　　　　　　　　　　　　　　　　　　　　　　制作：みお　@realryo1";
+	std::cout << "\n　　　　　　　　　　　　　　　　　　　　　　　制作：みお　@realryo1　v1.0";
+	std::cout << "\n";
+	std::cout << "\n　　　　　　　　　　　　　　　　　https://github.com/realryo1/CL11_0710_mapChip_kadai7";
 	std::cout << "\n";
 	std::cout << "\n";
 	std::cout << "\n";
