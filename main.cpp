@@ -423,7 +423,7 @@ void titleScene(void)
 	//タイトルロゴ
 	std::cout << "\n\n";
 	line();
-	std::cout << "\n\n\n\n\n";
+	std::cout << "\n\n\n\n";
 	std::cout << "\n　　　　　　　　●　　●　　　　　　　　●　　　　●　　●●●●●　　●　　　●　　　●　　　●●●　　●";
 	std::cout << "\n　　　　　　　●●●●●●　　　　　●●●●●　●　●　●　　　●　　●●　●●　　　●　　　●　　●　●";
 	std::cout << "\n　　　　　　　　●　　●　　　　　　　　●　　　　●　　●　　　●　　●　●　●　　●　●　　●　　●　●";
@@ -433,13 +433,15 @@ void titleScene(void)
 	std::cout << "\n";
 	std::cout << "\n";
 	std::cout << "\n";
-	std::cout << "\n";
 	std::cout << "\n　　　　　　　　　　　　　　　　　　　　　　　あなたはどこでなにをする？";
+	std::cout << "\n";
+	std::cout << "\n";
+	std::cout << "\n　　　　　　　　　　　　　　　　　　　　　　　　制作：みお　@realryo1";
 	std::cout << "\n";
 	std::cout << "\n";
 	std::cout << "\n";
 	std::cout << "\n　　　　　　　　　　　　　　　　　　　　　　　　　エンターでスタート";
-	std::cout << "\n\n\n\n\n\n";
+	std::cout << "\n\n\n\n\n";
 	line();
 
 	std::cin.seekg(0);
